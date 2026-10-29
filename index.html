@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neuro Helper - Your Gentle Day Companion</title>
+    <style>
+        :root {
+            --bg-color: #0f1115;
+            --card-bg: #1a1d24;
+            --text-primary: #f0f2f5;
+            --text-secondary: #9ca3af;
+            --accent-main: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --border-color: #2d3748;
+        }
+
+        body.theme-purple { --bg-color: #0f1115; --card-bg: #1a1d24; --accent-main: #8b5cf6; }
+        body.theme-emerald { --bg-color: #0b1311; --card-bg: #13221f; --accent-main: #10b981; }
+        body.theme-amber { --bg-color: #14110f; --card-bg: #211c19; --accent-main: #f59e0b; }
+        body.theme-crimson { --bg-color: #0a0a0a; --card-bg: #141414; --accent-main: #dc2626; --border-color: #262626; }
+        body.theme-navy { --bg-color: #090d16; --card-bg: #131b2e; --accent-main: #3b82f6; --border-color: #1e293b; }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+            transition: background-color 0.3s ease;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            gap: 10px;
+        }
+
+        h1 { font-size: 1.25rem; color: var(--accent-main); font-weight: 700; }
+
+        .header-controls { display: flex; gap: 8px; align-items: center; }
+
+        .theme-select {
+            font-size: 0.75rem;
+            background: #232733;
+            padding: 6px 8px;
+            border-radius: 10px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+
+        .status-pill {
+            font-size: 0.75rem;
+            background: #232733;
+            padding: 6px 10px;
+            border-radius: 12px;
+            color: var(--accent-green);
+            border: 1px solid var(--border-color);
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s ease;
+        }
+
+        h2 { font-size: 1rem; margin-bottom: 10px; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 14px;
+            background: #13151a;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            resize: none;
+            margin-top: 6px;
+        }
+
+        textarea:focus, input:focus, select:focus { outline: none; border-color: var(--accent-main); }
+        label { font-size: 0.85rem; color: var(--text-secondary); display: block; margin-top: 10px; }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-main);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: opacity 0.2s, background-color 0.3s;
+        }
+
+        button:active { opacity: 0.85; }
+        button.secondary { background: transparent; border: 1px solid var(--accent-main); color: var(--accent-main); }
+        button.record-btn { background: #ef4444; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        button.record-btn.recording { background: #b91c1c; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        .task-card {
+            background: #13151a;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-left: 5px solid var(--accent-main);
+        }
+
+        .task-title { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+        .micro-step {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            padding: 6px 0;
+            border-top: 1px solid #232733;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        audio { width: 100%; margin-top: 8px; height: 36px; }
+
+        .time-box-container {
+            width: 100%;
+            height: 6px;
+            background: #2d3748;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 10px 0 8px 0;
+        }
+
+        .time-box-fill {
+            height: 100%;
+            width: 100%;
+            background: var(--accent-green);
+            transition: width 0.5s linear, background-color 0.5s;
+        }
+
+        #alarmModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 17, 21, 0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            border: 2px solid var(--accent-red);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: center;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .modal-content h2 { color: var(--accent-red); font-size: 1.5rem; justify-content: center; margin-bottom: 12px; }
+        .modal-content p { margin-bottom: 24px; color: var(--text-secondary); font-size: 1.05rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🌱 Neuro Helper</h1>
+        <div class="header-controls">
+            <select id="themeSelect" class="theme-select" onchange="changeTheme()">
+                <option value="purple">🟣 Midnight Purple</option>
+                <option value="emerald">🟢 Slate Emerald</option>
+                <option value="amber">🟠 Charcoal Amber</option>
+                <option value="crimson">🔴 Black & Crimson</option>
+                <option value="navy">🔵 Deep Navy Blue</option>
+            </select>
+            <div class="status-pill" id="syncStatus">Offline Ready</div>
+        </div>
+    </header>
+
+    <!-- Friendly Entry Hub -->
+    <div class="card">
+        <h2>💭 What's on your mind?</h2>
+        <label for="entryType">Save As</label>
+        <select id="entryType">
+            <option value="brain_dump">🧠 Quick Brain Dump</option>
+            <option value="note">📝 Simple Note</option>
+            <option value="task">☑️ Task / To-Do</option>
+            <option value="event">📅 Event / Appointment</option>
+        </select>
+
+        <div id="bufferGroup">
+            <label for="alertBuffer">Reminder Notice Time</label>
+            <select id="alertBuffer">
+                <option value="2">2 minutes before</option>
+                <option value="5" selected>5 minutes before</option>
+                <option value="15">15 minutes before</option>
+                <option value="60">1 hour before</option>
+            </select>
+        </div>
+
+        <div id="dateTimeGroup" style="display: none;">
+            <label for="eventDateTime">Appointment Date & Time</label>
+            <input type="datetime-local" id="eventDateTime">
+        </div>
+
+        <textarea id="userInput" rows="3" placeholder="Speak your mind or type notes here..." style="margin-top: 10px;"></textarea>
+        
+        <!-- Simultaneous Audio Recording & Transcription Controls -->
+        <button id="recordBtn" class="record-btn" onclick="toggleVoiceAndAudioRecording()">
+            🎙️ Record Voice Memo & Transcribe
+        </button>
+        <button class="secondary" onclick="simplifyTextIntoSteps()">✨ Summarize Text into Steps</button>
+        <button onclick="saveUserEntry()">Save to My Day</button>
+    </div>
+
+    <!-- Alarm Testing -->
+    <div class="card">
+        <h2>🔔 Alert Testing</h2>
+        <button class="secondary" onclick="testEscalatingAlarm()">Test Uncapped Escalating Alarm</button>
+    </div>
+
+    <!-- My Saved Items at the bottom -->
+    <div class="card">
+        <h2>✨ My Saved Items</h2>
+        <div id="itemList">
+            <p style="font-size: 0.85rem; color: var(--text-secondary);">Your saved notes, tasks, and appointments will show up here.</p>
+        </div>
+    </div>
+
+    <!-- Alarm Modal -->
+    <div id="alarmModal">
+        <div class="modal-content">
+            <h2>🚨 Gentle Check-In</h2>
+            <p id="alarmTitle">Time for your reminder!</p>
+            <button onclick="dismissAlarm()" style="background: var(--accent-green);">All Done / Got It</button>
+            <button class="secondary" onclick="snoozeAlarm()" style="border-color: var(--text-secondary); color: var(--text-secondary);">Remind Me in 5 Mins</button>
+        </div>
+    </div>
+
+    <script>
+        let savedItems = JSON.parse(localStorage.getItem('neuro_saved_items')) || [];
+        let activeAudioInterval = null;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordedAudioUrl = null;
+        let recognition = null;
+        let isRecording = false;
+        let mediaStream = null;
+
+        window.onload = function() {
+            const savedTheme = localStorage.getItem('neuro_theme') || 'purple';
+            document.getElementById('themeSelect').value = savedTheme;
+            applyTheme(savedTheme);
+
+            const entryTypeSelect = document.getElementById('entryType');
+            entryTypeSelect.addEventListener('change', handleTypeChange);
+            
+            handleTypeChange();
+            renderItems();
+            requestNotificationPermission();
+            initSpeechRecognition();
+            setInterval(updateTimeBoxes, 1000);
+
+            const future = new Date(Date.now() + 3600000);
+            document.getElementById('eventDateTime').value = future.toISOString().slice(0,16);
+        };
+
+        function changeTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            localStorage.setItem('neuro_theme', theme);
+            applyTheme(theme);
+        }
+
+        function applyTheme(theme) {
+            document.body.className = 'theme-' + theme;
+        }
+
+        function requestNotificationPermission() {
+            if (window.Notification && Notification.permission !== "granted") {
+                Notification.requestPermission();
+            }
+        }
+
+        function handleTypeChange() {
+            const type = document.getElementById('entryType').value;
+            const bufferGroup = document.getElementById('bufferGroup');
+            const dateTimeGroup = document.getElementById('dateTimeGroup');
+
+            if (!bufferGroup || !dateTimeGroup) return;
+
+            if (type === 'note' || type === 'brain_dump') {
+                bufferGroup.style.display = 'none';
+                dateTimeGroup.style.display = 'none';
+            } else if (type === 'event') {
+                bufferGroup.style.display = 'block';
+                dateTimeGroup.style.display = 'block';
+            } else {
+                bufferGroup.style.display = 'block';
+                dateTimeGroup.style.display = 'none';
+            }
+        }
+
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.lang = 'en-GB';
+
+                recognition.onresult = function(event) {
+                    let transcript = '';
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                    }
+                    document.getElementById('userInput').value = transcript;
+                };
+
+                recognition.onerror = function(event) {
+                    console.log("Speech recognition info:", event.error);
+                };
+            }
+        }
+
+        async function toggleVoiceAndAudioRecording() {
+            const btn = document.getElementById('recordBtn');
+
+            if (!isRecording) {
+                try {
+                    audioChunks = [];
+                    mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    
+                    let options = { mimeType: 'audio/webm' };
+                    if (!MediaRecorder.isTypeSupported('audio/webm')) {
+                        if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                            options = { mimeType: 'audio/mp4' };
+                        } else {
+                            options = {};
+                        }
+                    }
+
+                    mediaRecorder = new MediaRecorder(mediaStream, options);
+
+                    mediaRecorder.ondataavailable = function(e) {
+                        if (e.data && e.data.size > 0) {
+                            audioChunks.push(e.data);
+                        }
+                    };
+
+                    mediaRecorder.onstop = function() {
+                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+                        recordedAudioUrl = URL.createObjectURL(audioBlob);
+                        
+                        if (mediaStream) {
+                            mediaStream.getTracks().forEach(track => track.stop());
+                        }
+                    };
+
+                    mediaRecorder.start(1000);
+
+                    if (recognition) {
+                        try {
+                            recognition.start();
+                        } catch (e) {}
+                    }
+
+                    isRecording = true;
+                    btn.classList.add('recording');
+                    btn.innerHTML = '🛑 Tap to Stop Recording';
+                } catch (err) {
+                    alert("Microphone permission denied or unavailable.");
+                    console.error(err);
+                }
+            } else {
+                if (mediaRecorder && mediaRecorder.state !== "inactive") {
+                    mediaRecorder.stop();
+                }
+                if (recognition) {
+                    try {
+                        recognition.stop();
+                    } catch (e) {}
+                }
+                isRecording = false;
+                btn.classList.remove('recording');
+                btn.innerHTML = '🎙️ Record Voice Memo & Transcribe';
+            }
+        }
+
+        function simplifyTextIntoSteps() {
+            const inputField = document.getElementById('userInput');
+            let text = inputField.value.trim();
+            if (!text) {
+                alert("Type or dictate something first to summarize!");
+                return;
+            }
+
+            let sentences = text.split(/[.?!]+/).filter(Boolean).map(s => s.trim());
+            if (sentences.length === 0) return;
+
+            let mainTitle = sentences[0];
+            if (mainTitle.length > 25) {
+                mainTitle = mainTitle.substring(0, 22) + '...';
+            }
+
+            // Store temporary structured steps on the input element for saveUserEntry to pick up
+            inputField.dataset.customSteps = JSON.stringify(
+                sentences.slice(1, 4).map((s, index) => `Step ${index + 1}: ${s}`)
+            );
+            inputField.value = `${mainTitle} — [Summarized into ${Math.min(sentences.length, 3)} steps]`;
+            document.getElementById('entryType').value = 'task';
+            handleTypeChange();
+        }
+
+        function saveUserEntry() {
+            const type = document.getElementById('entryType').value;
+            const inputField = document.getElementById('userInput');
+            const text = inputField.value.trim();
+
+            if (!text && !recordedAudioUrl) {
+                alert("Please type something or record a voice memo first!");
+                return;
+            }
+
+            let title = "";
+            let steps = [];
+            let icon = "";
+            let hasTimer = (type !== 'note' && type !== 'brain_dump');
+            let targetTime = null;
+            let createdAt = Date.now();
+            let audioUrlToSave = recordedAudioUrl;
+
+            // Check if text was simplified into custom steps
+            if (inputField.dataset.customSteps) {
+                try {
+                    steps = JSON.parse(inputField.dataset.customSteps);
+                    delete inputField.dataset.customSteps;
+                } catch (e) {}
+            }
+
+            if (type === 'brain_dump') {
+                icon = "🎙️";
+                title = "Voice Brain Dump";
+                if (steps.length === 0) steps = ["Step 1: Listen to voice note", "Step 2: Pick core action"];
+            } else if (type === 'note') {
+                icon = "📝";
+                title = "Transcribed Note";
+                if (steps.length === 0) steps = ["Reference note anytime"];
+            } else if (type === 'task') {
+                icon = "☑️";
+                title = text.length > 25 ? text.substring(0, 22) + '...' : (audioUrlToSave ? "Voice Task" : text);
+                if (steps.length === 0) steps = ["Step 1: Start small part", "Step 2: Check off when done"];
+                const bufferMinutes = parseInt(document.getElementById('alertBuffer').value);
+                targetTime = createdAt + (bufferMinutes * 60 * 1000);
+            } else if (type === 'event') {
+                icon = "📅";
+                title = text.length > 25 ? text.substring(0, 22) + '...' : "Voice Appointment";
+                if (steps.length === 0) steps = ["Step 1: Check prep requirements", "Step 2: Attend on time"];
+                
+                const selectedDateTime = document.getElementById('eventDateTime').value;
+                const eventEpoch = selectedDateTime ? new Date(selectedDateTime).getTime() : createdAt + 3600000;
+                const bufferMinutes = parseInt(document.getElementById('alertBuffer').value);
+                
+                targetTime = eventEpoch - (bufferMinutes * 60 * 1000);
+            }
+
+            savedItems.unshift({
+                id: createdAt,
+                icon: icon,
+                type: type,
+                title: title,
+                content: text,
+                audioUrl: audioUrlToSave,
+                steps: steps,
+                createdAt: createdAt,
+                targetTime: targetTime,
+                hasTimer: hasTimer,
+                triggered: false
+            });
+
+            inputField.value = '';
+            recordedAudioUrl = null;
+            document.getElementById('recordBtn').innerHTML = '🎙️ Record Voice Memo & Transcribe';
+            saveAndRender();
+        }
+
+        function deleteItem(id) {
+            savedItems = savedItems.filter(function(item) { return item.id !== id; });
+            saveAndRender();
+        }
+
+        function saveAndRender() {
+            localStorage.setItem('neuro_saved_items', JSON.stringify(savedItems));
+            renderItems();
+        }
+
+        function renderItems() {
+            const listEl = document.getElementById('itemList');
+            if (savedItems.length === 0) {
+                listEl.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-secondary);">Your saved notes, tasks, and appointments will show up here.</p>';
+                return;
+            }
+
+            let html = '';
+            savedItems.forEach(function(item) {
+                let stepsHtml = '';
+                if (item.steps && item.steps.length > 0) {
+                    item.steps.forEach(function(step) {
+                        stepsHtml += '<div class="micro-step">☑️ ' + step + '</div>';
+                    });
+                }
+
+                let audioHtml = item.audioUrl ? '<audio controls src="' + item.audioUrl + '"></audio>' : '';
+                let timeBoxHtml = item.hasTimer ? 
+                    '<div class="time-box-container"><div class="time-box-fill" id="bar-' + item.id + '"></div></div>' : '';
+
+                html += '<div class="task-card">' +
+                    '<div style="display: flex; justify-content: space-between; align-items: flex-start;">' +
+                        '<div class="task-title">' + item.icon + ' ' + item.title + '</div>' +
+                        '<button onclick="deleteItem(' + item.id + ')" style="width: auto; padding: 4px 10px; margin: 0; background: transparent; color: var(--accent-red); border: 1px solid var(--accent-red); font-size: 0.8rem;">Done</button>' +
+                    '</div>' +
+                    timeBoxHtml +
+                    '<div style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px; line-height: 1.3;">"' + item.content + '"</div>' +
+                    audioHtml +
+                    stepsHtml +
+                '</div>';
+            });
+            listEl.innerHTML = html;
+        }
+
+        function updateTimeBoxes() {
+            const now = Date.now();
+            savedItems.forEach(function(item) {
+                if (!item.hasTimer || !item.targetTime) return;
+                const bar = document.getElementById('bar-' + item.id);
+                if (!bar) return;
+
+                const totalDuration = item.targetTime - item.createdAt;
+                const timeLeft = item.targetTime - now;
+                let percentage = (timeLeft / totalDuration) * 100;
+
+                if (percentage < 0) percentage = 0;
+                if (percentage > 100) percentage = 100;
+
+                bar.style.width = percentage + '%';
+
+                if (percentage > 50) {
+                    bar.style.backgroundColor = 'var(--accent-green)';
+                } else if (percentage > 20) {
+                    bar.style.backgroundColor = 'var(--accent-amber)';
+                } else {
+                    bar.style.backgroundColor = 'var(--accent-red)';
+                }
+
+                if (timeLeft <= 0 && !item.triggered) {
+                    item.triggered = true;
+                    triggerAlarm(item.title);
+                }
+            });
+        }
+
+        function triggerAlarm(title) {
+            document.getElementById('alarmTitle').innerText = title;
+            document.getElementById('alarmModal').style.display = 'flex';
+            playUncappedEscalatingAlarm();
+            
+            try {
+                if (navigator.vibrate) {
+                    navigator.vibrate([400, 200, 400, 200, 400]);
+                }
+            } catch (e) {}
+        }
+
+        let audioCtx = null;
+        function playUncappedEscalatingAlarm() {
+            if (audioCtx) return;
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let step = 0;
+                activeAudioInterval = setInterval(function() {
+                    if (!audioCtx) return;
+                    step++;
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = 750;
+                    let targetGain = Math.min(0.05 * step, 0.9);
+                    gainNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.35);
+                }, 800);
+            } catch (e) {}
+        }
+
+        function testEscalatingAlarm() {
+            triggerAlarm("Testing Uncapped Escalating Alarm");
+        }
+
+        function dismissAlarm() {
+            document.getElementById('alarmModal').style.display = 'none';
+            stopAlarmAudio();
+        }
+
+        function snoozeAlarm() {
+            document.getElementById('alarmModal').style.display = 'none';
+            stopAlarmAudio();
+            savedItems.push({
+                id: Date.now(),
+                icon: "⏰",
+                type: "task",
+                title: "Snoozed Reminder",
+                content: "Snoozed task reminder",
+                steps: ["Step 1: Take care of this right now"],
+                createdAt: Date.now(),
+                targetTime: Date.now() + (5 * 60 * 1000),
+                hasTimer: true,
+                triggered: false
+            });
+            saveAndRender();
+        }
+
+        function stopAlarmAudio() {
+            if (activeAudioInterval) {
+                clearInterval(activeAudioInterval);
+                activeAudioInterval = null;
+            }
+            if (audioCtx) {
+                audioCtx.close();
+                audioCtx = null;
+            }
+        }
+    </script>
+</body>
+</html>
